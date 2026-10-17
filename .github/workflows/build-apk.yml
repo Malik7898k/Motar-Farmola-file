@@ -1,0 +1,43 @@
+
+name: Build Motor Formula APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'MotorFormula_GitHub_Upload.zip'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repository files
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract project ZIP
+        run: |
+          mkdir -p "$RUNNER_TEMP/motor-formula"
+          unzip -q MotorFormula_GitHub_Upload.zip -d "$RUNNER_TEMP/motor-formula"
+          echo "PROJECT_DIR=$RUNNER_TEMP/motor-formula" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        run: gradle --no-daemon -p "$PROJECT_DIR" assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Motor-Formula-APK
+          path: ${{ runner.temp }}/motor-formula/app/build/outputs/apk/debug/app-debug.apk
+          
